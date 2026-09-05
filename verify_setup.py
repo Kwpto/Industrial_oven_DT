@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from config import DATA_PATH, MODEL_PATH, RUL_MODEL_PATH, SHAP_PATH, FEATURE_COLS
 
 print("=" * 40)
 print("  DIGITAL TWIN PRE-FLIGHT READINESS CHECK")
@@ -12,36 +13,52 @@ try:
     import sklearn
     import streamlit
     import xgboost
+    import joblib
+    import shap
+    import fastapi
+    import uvicorn
+    import requests
+    import openpyxl
     print("✅ Libraries: All required packages installed.")
 except ImportError as e:
     print(f"❌ Libraries Missing: {e}")
 
 # 2. Check Data File
-if os.path.exists("baking_oven_telemetry.csv"):
-    df = pd.read_csv("baking_oven_telemetry.csv")
-    if len(df) == 3000 and df.shape[1] == 10:
+if os.path.exists(DATA_PATH):
+    df = pd.read_csv(DATA_PATH)
+    if len(df) == 3000 and df.shape[1] == 16:
         print(f"✅ Telemetry Data: Verified ({len(df)} rows, {df.shape[1]} columns).")
     else:
-        print("⚠️ Telemetry Data: File found, but row/column count differs.")
+        print(f"⚠️ Telemetry Data: File found, but row/column count differs (Rows: {len(df)}, Cols: {df.shape[1]}).")
 else:
-    print("❌ Telemetry Data: 'baking_oven_telemetry.csv' not found.")
+    print(f"❌ Telemetry Data: '{DATA_PATH}' not found.")
+    df = None
 
-# 3. Train & Verify XGBoost Model Artifact
-try:
-    from xgboost import XGBClassifier
-    from sklearn.model_selection import train_test_split
+# 3. Verify XGBoost Model Artifacts
+if df is not None:
+    try:
+        from xgboost import XGBClassifier, XGBRegressor
 
-    X = df[["Zone1_Temp_C", "Zone2_Temp_C", "Zone3_Temp_C", "Humidity_Pct", "Belt_Speed_m_min", "Gas_Flow_m3_h"]]
-    y = df["Defect_Flag"]
-    
-    model = XGBClassifier(n_estimators=50, max_depth=3, random_state=42)
-    model.fit(X, y)
-    model.save_model("oven_xgboost_model.json")
-    
-    if os.path.exists("oven_xgboost_model.json"):
-        print("✅ Machine Learning: XGBoost model trained & saved to 'oven_xgboost_model.json'.")
-except Exception as e:
-    print(f"❌ Machine Learning Error: {e}")
+        if os.path.exists(MODEL_PATH):
+            X = df[FEATURE_COLS]
+            
+            clf = XGBClassifier()
+            clf.load_model(MODEL_PATH)
+            
+            test_pred = clf.predict(X[:5])
+            print(f"✅ Quality Classifier: Loaded successfully (sample predictions: {test_pred})")
+        else:
+            print(f"❌ Quality Classifier: '{MODEL_PATH}' not found.")
+            
+        if os.path.exists(RUL_MODEL_PATH):
+            rul = XGBRegressor()
+            rul.load_model(RUL_MODEL_PATH)
+            print(f"✅ RUL Regressor: Loaded successfully.")
+        else:
+            print(f"❌ RUL Regressor: '{RUL_MODEL_PATH}' not found.")
+            
+    except Exception as e:
+        print(f"❌ Machine Learning Error: {e}")
 
 print("=" * 40)
 print("READY TO BUILD UI: Execute 'streamlit run app.py' when ready.")
