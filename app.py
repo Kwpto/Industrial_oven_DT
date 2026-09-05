@@ -112,7 +112,7 @@ def get_operator_recommendation(t1, t2, t3, belt_speed, humidity, dough_moisture
         product(
             np.arange(155.0, 165.1, 2.5),  # Zone 1 setpoint range
             np.arange(195.0, 220.1, 5.0),  # Zone 2 setpoint range
-            np.arange(175.0, 185.1, 2.5),  # Zone 3 setpoint range
+            np.arange(180.0, 195.1, 2.5),  # Zone 3 setpoint range
             np.arange(8.0, 16.1, 0.5),     # Belt-speed operating range
             np.arange(28.0, 38.1, 2.0),    # Gas-flow operating range
         ),
@@ -289,7 +289,7 @@ with col7:
 operating_limits = {
     "Zone 1 temperature": (t1, 155.0, 165.0, "°C"),
     "Zone 2 temperature": (t2, 195.0, 220.0, "°C"),
-    "Zone 3 temperature": (t3, 175.0, 185.0, "°C"),
+    "Zone 3 temperature": (t3, 180.0, 195.0, "°C"),
     "Belt speed": (belt_speed_override, 8.0, 16.0, "m/min"),
     "Gas flow": (gas_flow, 28.0, 38.0, "m³/h"),
     "Product moisture": (moisture, 3.5, 5.5, "%"),
